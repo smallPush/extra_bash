@@ -63,6 +63,15 @@ oo() {
   code ~/Documents/workspaces/$PROJECT_PATH
 }
 
+oa() {
+  local project_path
+  project_path=$(ls -1 ~/Documents/workspaces/ | fzf | awk '{print $1}')
+  
+  if [ -n "$project_path" ]; then
+    antigravity ~/Documents/workspaces/"$project_path"
+  fi
+}
+
 _clipboard() {
   CLIPBOARD_RESPONSE=$(gpaste-client history | fzf | awk '{print $2}')
   echo -n $CLIPBOARD_RESPONSE | xclip -selection c
