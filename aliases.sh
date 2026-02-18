@@ -17,6 +17,7 @@ alias gpsf="git push --force"
 alias gpl="git pull --rebase --autostash"
 alias gb="git branch"
 alias gl='$DOTLY_PATH/bin/dot git pretty-log'
+alias gsq2="git reset --soft HEAD~2 && git commit"
 
 # Utils
 alias k='kill -9'
