@@ -39,7 +39,7 @@ for ymlFile in ymlFiles:
   #print(ymlFile)
   with open(ymlFile, 'r') as file:
     files = file.read()
-    data = yaml.load(files, Loader=yaml.FullLoader)
+    data = yaml.safe_load(files)
     ## Get second part of the path
     nameSite = "@" + ymlFile.parts[3]
 
