@@ -102,3 +102,28 @@ ssh_c() {
   # Connect to the host
   ssh $host; rr;
 }
+
+function clone_personal_repo() {
+  if [ -z "$GITHUB_USER" ]; then
+    echo "Error: GITHUB_USER environment variable is not set."
+    return 1
+  fi
+
+  local repo_url
+  # Fetch repositories using GitHub API, parse ssh_url, and pass to fzf
+  repo_url=$(curl -s "https://api.github.com/users/$GITHUB_USER/repos?per_page=100" | grep -o '"ssh_url": "[^"]*"' | cut -d'"' -f4 | fzf --prompt="Select repository to clone: ")
+
+  if [ -n "$repo_url" ]; then
+    git clone "$repo_url"
+  else
+    echo "No repository selected."
+  fi
+}
+
+function list_custom_commands() {
+  echo -e "\n\033[1;32m--- CUSTOM ALIASES ---\033[0m"
+  grep -E '^alias ' "$HOME/extra_bash/aliases.sh" | cut -d'=' -f1 | sed 's/alias //' | sort | column
+  
+  echo -e "\n\033[1;34m--- CUSTOM FUNCTIONS ---\033[0m"
+  grep -Eh '^(function )?[a-zA-Z0-9_-]+\(\) ?\{' "$HOME/extra_bash/functions.sh" "$HOME/extra_bash/docker_functions.sh" | sed -E 's/^(function )?//' | sed -E 's/\(\) ?\{//' | sort | column
+}

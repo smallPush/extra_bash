@@ -80,3 +80,11 @@ Defined in `aliases.sh`
 * dcr → docker-compose restart
 * dcl → docker-compose logs \-f
 * dcs → docker-compose stop
+
+## General Utility Functions
+
+Defined in `functions.sh`
+
+* `list_custom_commands`: Lists all the custom aliases and functions available in the current environment from this project.
+* `clone_personal_repo`: Interactively clones a repository from your personal GitHub account using `fzf`. Requires the `GITHUB_USER` environment variable to be set.
+
