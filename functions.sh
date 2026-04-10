@@ -173,7 +173,10 @@ git_start_issue_pr() {
 # Merge current PR, delete branch and return to main
 git_finish_feature() {
   echo "Merging PR and deleting branch..."
-  gh pr merge --auto --delete-branch --merge
+  if ! gh pr merge --auto --delete-branch --merge; then
+    echo "Auto-merge not available. Trying direct merge..."
+    gh pr merge --delete-branch --merge
+  fi
   
   echo "Returning to main..."
   git checkout main
