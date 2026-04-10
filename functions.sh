@@ -1,3 +1,4 @@
+# Sync files to server using rsync
 function custom_rsync() {
   source $2
   echo "rsync -uzva --no-links --ignore-errors -e ssh $1 $SSH_CONNECTION:$PATH_SITE$PATH_RELATIVE_EXT"
@@ -9,16 +10,19 @@ function custom_rsync() {
   fi
 }
 
+# Interactively change directory using fzf
 function cdd() {
   cd "$(ls -d -- */ | fzf)" || echo "Invalid directory"
 }
 
+# Quick jump to directories using z
 function j() {
   fname=$(declare -f -F _z)
   [ -n "$fname" ] || source "$DOTLY_PATH/modules/z/z.sh"
   _z "$1"
 }
 
+# List recently visited directories using fzf
 function recent_dirs() {
   # This script depends on pushd. It works better with autopush enabled in ZSH
   escaped_home=$(echo $HOME | sed 's/\//\\\//g')
@@ -29,6 +33,7 @@ function recent_dirs() {
 
 # https://gist.github.com/davejamesmiller/1965569
 
+# Generate and open Drush uli for dev
 _custom_drush_uli() {
   site_alias=$(fc -rl 1 | ssh ${DEFAULT_USER_SSH}@${DEV_HOST} drush sa | fzf)
   uli=$(ssh ${DEFAULT_USER_SSH}@${DEV_HOST} drush ${site_alias} uli )
@@ -40,6 +45,7 @@ _custom_drush_uli() {
   $BROWSER ${uli}
 }
 
+# Generate and open Drush uli for staging
 _custom_drush_uli_staging() {
   site_alias=$(fc -rl 1  | ssh -i ~/ssh_ixiam/id_rsa ${DEFAULT_USER_SSH}@${STAGING_HOST} drush sa | fzf)
   uli=$(ssh -i ~/ssh_ixiam/id_rsa ${DEFAULT_USER_SSH}@${STAGING_HOST} drush ${site_alias} uli )
@@ -48,21 +54,25 @@ _custom_drush_uli_staging() {
   $BROWSER ${uli}
 }
 
+# Fix Aegir permissions for ext directory
 _custom_fix_permissions_aegir_ext() {
   $(ssh ${DEFAULT_USER_SSH}@${DEV_HOST} mv /data/disk/${USER_AEGIR_DEV}/static/repositories/ext /data/disk/${USER_AEGIR_DEV}/static/trash/ext$(date +%Y%m%d))
   $(ssh ${DEFAULT_USER_SSH}@${DEV_HOST} cp -r /data/disk/${USER_AEGIR_DEV}/static/trash/ext$(date +%Y%m%d) /data/disk/${USER_AEGIR_DEV}/static/repositories/ext)
 }
 
+# Fix all Aegir permissions
 _custom_fix_permissions_aegir_total() {
   $(ssh ${DEFAULT_USER_SSH}@${DEV_HOST} mv /data/disk/${USER_AEGIR_DEV}/static/repositories /data/disk/${USER_AEGIR_DEV}/static/trash/repositories$(date +%Y%m%d))
   $(ssh ${DEFAULT_USER_SSH}@${DEV_HOST} cp -r /data/disk/${USER_AEGIR_DEV}/static/trash/repositories$(date +%Y%m%d) /data/disk/${USER_AEGIR_DEV}/static/repositories)
 }
 
+# Open project in VS Code using fzf
 oo() {
   PROJECT_PATH=$(ls -1 ~/Documents/workspaces/ | fzf | awk '{print $1}')
   code ~/Documents/workspaces/$PROJECT_PATH
 }
 
+# Open workspace with Antigravity
 oa() {
   local project_path
   project_path=$(ls -1 ~/Documents/workspaces/ | fzf | awk '{print $1}')
@@ -72,11 +82,13 @@ oa() {
   fi
 }
 
+# Interactively select from clipboard history
 _clipboard() {
   CLIPBOARD_RESPONSE=$(gpaste-client history | fzf | awk '{print $2}')
   echo -n $CLIPBOARD_RESPONSE | xclip -selection c
 }
 
+# Interactively kill a process
 fkill() {
   local pid
   if [ "$UID" != "0" ]; then
@@ -91,6 +103,7 @@ fkill() {
   fi
 }
 
+# Interactively connect to SSH host
 ssh_c() {
   # ToDo generate a list of hosts with the path of the config file, more clear to select
   # Get path of the config file
@@ -103,6 +116,7 @@ ssh_c() {
   ssh $host; rr;
 }
 
+# Clone a personal repository from GitHub
 function clone_personal_repo() {
   if [ -z "$GITHUB_USER" ]; then
     echo "Error: GITHUB_USER environment variable is not set."
@@ -120,10 +134,89 @@ function clone_personal_repo() {
   fi
 }
 
+# Create a GitHub issue, a branch, and a linked PR
+git_start_issue_pr() {
+  local title="$1"
+  if [ -z "$title" ]; then
+    read -rp "Enter issue title: " title
+  fi
+
+  echo "Creating issue..."
+  # Create issue and capture the output URL
+  local issue_url
+  issue_url=$(gh issue create --title "$title" --body "Feature: $title")
+
+  local issue_number
+  issue_number=$(echo "$issue_url" | grep -oE '[0-9]+$' || echo "$issue_url" | awk -F '/' '{print $NF}')
+
+  if [ -z "$issue_number" ]; then
+    echo "Error: Could not determine issue number from $issue_url"
+    return 1
+  fi
+  echo "Issue #$issue_number created: $issue_url"
+
+  local slug
+  slug=$(echo "$title" | tr '[:upper:]' '[:lower:]' | sed 's/ /-/g' | sed 's/[^a-z0-9-]//g')
+  local branch_name="feat/${issue_number}-${slug}"
+
+  echo "Creating branch $branch_name..."
+  git checkout -b "$branch_name"
+
+  echo "Pushing initial commit..."
+  git commit --allow-empty -m "feat: $title (start)"
+  git push -u origin "$branch_name"
+
+  echo "Creating PR..."
+  gh pr create --title "feat: $title" --body "Closes #$issue_number"
+}
+
+# Merge current PR, delete branch and return to main
+git_finish_feature() {
+  echo "Merging PR and deleting branch..."
+  if ! gh pr merge --auto --delete-branch --merge; then
+    echo "Auto-merge not available. Trying direct merge..."
+    gh pr merge --delete-branch --merge
+  fi
+  
+  echo "Returning to main..."
+  git checkout main
+  git pull
+}
+
 function list_custom_commands() {
   echo -e "\n\033[1;32m--- CUSTOM ALIASES ---\033[0m"
-  grep -E '^alias ' "$HOME/extra_bash/aliases.sh" | cut -d'=' -f1 | sed 's/alias //' | sort | column
+  awk '
+    /^alias / {
+        line = $0
+        sub(/^alias /, "", line)
+        split(line, parts, "=")
+        name = parts[1]
+        
+        description = ""
+        if ($0 ~ /#/) {
+            split($0, comment_parts, "#")
+            description = comment_parts[2]
+            gsub(/^[ \t]+/, "", description)
+        }
+        
+        printf "\033[1;33m%-30s\033[0m | %s\n", name, description
+    }
+  ' "$HOME/extra_bash/aliases.sh" | sort | column -t -s '|'
   
   echo -e "\n\033[1;34m--- CUSTOM FUNCTIONS ---\033[0m"
-  grep -Eh '^(function )?[a-zA-Z0-9_-]+\(\) ?\{' "$HOME/extra_bash/functions.sh" "$HOME/extra_bash/docker_functions.sh" | sed -E 's/^(function )?//' | sed -E 's/\(\) ?\{//' | sort | column
+  awk '
+    /^# / { last_comment = $0; sub(/^# /, "", last_comment); next }
+    /^(function )?[a-zA-Z0-9_-]+\(\) ?\{/ {
+        line = $0
+        sub(/^function /, "", line)
+        sub(/\(\) ?\{.*$/, "", line)
+        gsub(/^[ \t]+/, "", line)
+        
+        printf "\033[1;33m%-30s\033[0m | %s\n", line, last_comment
+        last_comment = ""
+        next
+    }
+    /^[ \t]*$/ { next }
+    { last_comment = "" }
+  ' "$HOME/extra_bash/functions.sh" "$HOME/extra_bash/docker_functions.sh" | sort | column -t -s '|'
 }

@@ -1,3 +1,4 @@
+# Connect to a running Docker container
 dkc() {
   if docker ps >/dev/null 2>&1; then
     container=$(docker ps | awk '{if (NR!=1) print $1 ": " $(NF)}' | fzf --height 40%)
@@ -14,6 +15,7 @@ dkc() {
   fi
 }
 
+# Get information about a running container
 dki() {
   containerId=$(docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Status}}" | tail -n +2 | fzf | awk '{print $1}')
   containerInfo=$(docker inspect $containerId | grep com.docker.compose)
@@ -26,12 +28,14 @@ dki() {
   cd $containerIdPath
 }
 
+# Go to the working directory of a container
 dkg() {
   containerId=$(docker ps | tail -n +2 | fzf | awk '{print $1}')
   containerIdPath=$(docker inspect $containerId | grep working_dir | awk '{print $2}' |  sed 's/\"//g' |  sed 's/,//g')
   cd $containerIdPath
 }
 
+# Stop all Ixiam containers on dev server
 dk-stop-ixiam() {
   echo -e $(ssh ${USER_DEV_DOCKER}@${DEV_DOCKER} docker ps -a --filter "status=running" | grep -v "portainer" | grep -v "traefik")
   if ask "Do you want stop the containers?"; then
@@ -96,30 +100,39 @@ dk-help() {
   echo "dcs             docker-compose stop"
 }
 
+# List running containers
 dk-ps() {
   docker ps
 }
+# Start a container
 dk-start() {
   docker start "$1"
 }
+# Stop a container
 dk-stop() {
   docker stop "$1"
 }
+# Stop all containers
 dk-stop-all() {
   docker stop $(docker ps -q)
 }
+# Run a PHP script in a container
 dk-php() {
   docker run --rm -v $(pwd):/app -w /app php:7.2.29-cli-alpine php "$1"
 }
+# Run gulp in a container
 dk-gulp() {
   docker run --rm --user $(id -u):$(id -g) -v $PWD:/app -v $PWD/.npm:/.npm -v $PWD/.config:/.config -w /app node:15.3.0-alpine npx gulp "$@"
 }
+# Run npm install in a container
 dk-npm-install() {
   docker run --rm --user $(id -u):$(id -g) -v $PWD:/app -v $PWD/.npm:/.npm -v $PWD/.config:/.config -w /app node:15.3.0-alpine npm install "$@"
 }
+# Run npx in a container
 dk-npx() {
   docker run --rm --user $(id -u):$(id -g) -v $PWD:/app -v $PWD/.npm:/.npm -v $PWD/.config:/.config -w /app node:15.3.0-alpine npx "$@"
 }
+# Run composer in a container
 dk-composer() {
   docker run -it --rm -v $(pwd):/app composer "$1"
 }
