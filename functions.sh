@@ -69,14 +69,14 @@ _custom_fix_permissions_aegir_total() {
 # Open project in VS Code using fzf
 oo() {
   PROJECT_PATH=$(ls -1 ~/Documents/workspaces/ | fzf | awk '{print $1}')
-  code ~/Documents/workspaces/$PROJECT_PATH
+  antigravity ~/Documents/workspaces/$PROJECT_PATH
 }
 
 # Open workspace with Antigravity
 oa() {
   local project_path
   project_path=$(ls -1 ~/Documents/workspaces/ | fzf | awk '{print $1}')
-  
+
   if [ -n "$project_path" ]; then
     antigravity ~/Documents/workspaces/"$project_path"
   fi
@@ -177,10 +177,39 @@ git_finish_feature() {
     echo "Auto-merge not available. Trying direct merge..."
     gh pr merge --delete-branch --merge
   fi
-  
+
   echo "Returning to main..."
   git checkout main
   git pull
+}
+
+# TaskQuest: Gamified Task Manager
+function tq() {
+  local python_script="$HOME/repositories/task-quest/tq.py"
+
+  if [[ "$1" == "done" ]] && [[ -z "$2" ]]; then
+    # Interactive completion with fzf
+    local selected=$(python3 "$python_script" list | grep -E "^[0-9]+\." | fzf --height 40% --reverse --prompt="Select task to complete: ")
+    if [ -n "$selected" ]; then
+      local idx=$(echo "$selected" | cut -d'.' -f1)
+      python3 "$python_script" done "$idx"
+    fi
+  elif [[ "$1" == "good" ]] && [[ -z "$2" ]]; then
+    # Interactive good action
+    local action xp
+    if [[ -n "$ZSH_VERSION" ]]; then
+      read "action?What good deed did you do today? "
+      read "xp?XP Reward (default 50): "
+    else
+      read -rp "What good deed did you do today? " action
+      read -rp "XP Reward (default 50): " xp
+    fi
+    xp=${xp:-50}
+    python3 "$python_script" good "$action" "$xp"
+  else
+    # Regular commands
+    python3 "$python_script" "$@"
+  fi
 }
 
 function list_custom_commands() {
@@ -191,18 +220,18 @@ function list_custom_commands() {
         sub(/^alias /, "", line)
         split(line, parts, "=")
         name = parts[1]
-        
+
         description = ""
         if ($0 ~ /#/) {
             split($0, comment_parts, "#")
             description = comment_parts[2]
             gsub(/^[ \t]+/, "", description)
         }
-        
+
         printf "\033[1;33m%-30s\033[0m | %s\n", name, description
     }
   ' "$HOME/extra_bash/aliases.sh" | sort | column -t -s '|'
-  
+
   echo -e "\n\033[1;34m--- CUSTOM FUNCTIONS ---\033[0m"
   awk '
     /^# / { last_comment = $0; sub(/^# /, "", last_comment); next }
@@ -211,7 +240,7 @@ function list_custom_commands() {
         sub(/^function /, "", line)
         sub(/\(\) ?\{.*$/, "", line)
         gsub(/^[ \t]+/, "", line)
-        
+
         printf "\033[1;33m%-30s\033[0m | %s\n", line, last_comment
         last_comment = ""
         next
