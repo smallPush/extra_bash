@@ -18,6 +18,8 @@ Is required add the following to your shell profile (e.g., \~/.zshrc or \~/.bash
   * serverstats.json (Export source)
   * db/servers.json
 
+* `exports.sh`: Sets up PATH variables (e.g. composer vendor path).
+
 ## Shell Setup (Zsh)
 
 To utilize the full feature set, the following Zsh plugins are required.
@@ -35,6 +37,22 @@ To utilize the full feature set, the following Zsh plugins are required.
 Update your \~/.zshrc file to include the following plugins:
 
 plugins=(git zsh-fzf-history-search compleat zsh-autosuggestions zsh-syntax-highlighting)
+
+## General Aliases
+
+Defined in `aliases.sh`
+
+### Git Aliases
+
+* `gaa`: git add -A
+* `gc`: git commit using dot
+* `gca`: git amend
+* `gco`: git checkout
+* `gd`: git pretty-diff using dot
+* `gs`: git status -sb
+* `gf`: git fetch --all -p
+* `gps`: git push
+* `gpsf`: git push --force
 
 ## Docker Utility Functions
 
@@ -87,4 +105,13 @@ Defined in `functions.sh`
 
 * `list_custom_commands`: Lists all the custom aliases and functions available in the current environment from this project.
 * `clone_personal_repo`: Interactively clones a repository from your personal GitHub account using `fzf`. Requires the `GITHUB_USER` environment variable to be set.
+* `custom_rsync`: Sync files to server using rsync.
+* `cdd`: Interactively change directory using `fzf`.
+* `j`: Quick jump to directories using `z`.
+* `recent_dirs`: List recently visited directories using `fzf`.
+
+## Python Scripts
+
+* `get_enviroment.py`: An interactive script that parses YAML site configurations and allows connecting to a server using Drush aliases (e.g. `drush sa`, `drush uli`).
+* `deploy_server.py`: A deployment utility that iterates through servers to automate setting updates (e.g. `wkhtmltopdfPath`) via Drush.
 
