@@ -109,9 +109,9 @@ Defined in `functions.sh`
 * `cdd`: Interactively change directory using `fzf`.
 * `j`: Quick jump to directories using `z`.
 * `recent_dirs`: List recently visited directories using `fzf`.
+* `copy`: Copies the last line from stdin to your clipboard. Example: `pwd | copy`.
 
 ## Python Scripts
 
 * `get_enviroment.py`: An interactive script that parses YAML site configurations and allows connecting to a server using Drush aliases (e.g. `drush sa`, `drush uli`).
 * `deploy_server.py`: A deployment utility that iterates through servers to automate setting updates (e.g. `wkhtmltopdfPath`) via Drush.
-

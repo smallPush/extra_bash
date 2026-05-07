@@ -88,6 +88,23 @@ _clipboard() {
   echo -n $CLIPBOARD_RESPONSE | xclip -selection c
 }
 
+# Copy only the last line from stdin to clipboard
+copy() {
+  local last_line
+  last_line=$(tail -n 1)
+
+  if command -v xclip >/dev/null 2>&1; then
+    printf "%s" "$last_line" | xclip -selection clipboard
+  elif command -v wl-copy >/dev/null 2>&1; then
+    printf "%s" "$last_line" | wl-copy
+  elif command -v pbcopy >/dev/null 2>&1; then
+    printf "%s" "$last_line" | pbcopy
+  else
+    echo "No clipboard tool found. Install xclip, wl-copy, or pbcopy."
+    return 1
+  fi
+}
+
 # Interactively kill a process
 fkill() {
   local pid
