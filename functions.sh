@@ -66,10 +66,14 @@ _custom_fix_permissions_aegir_total() {
   $(ssh ${DEFAULT_USER_SSH}@${DEV_HOST} cp -r /data/disk/${USER_AEGIR_DEV}/static/trash/repositories$(date +%Y%m%d) /data/disk/${USER_AEGIR_DEV}/static/repositories)
 }
 
-# Open project in VS Code using fzf
+# Open project with Antigravity using fzf
 oo() {
-  PROJECT_PATH=$(ls -1 ~/Documents/workspaces/ | fzf | awk '{print $1}')
-  antigravity ~/Documents/workspaces/$PROJECT_PATH
+  local project_path
+  project_path=$(ls -1 ~/Documents/workspaces/ | fzf | awk '{print $1}')
+
+  if [ -n "$project_path" ]; then
+    antigravity ~/Documents/workspaces/"$project_path"
+  fi
 }
 
 # Open workspace with Antigravity
